@@ -1,5 +1,6 @@
 import csv
 import re
+from collections import OrderedDict
 from itertools import groupby
 
 from actual_alg import alg
@@ -133,10 +134,17 @@ def pi_matrix(foo):
         ret[key] = len(list(group)) / len(foo)
     return ret
 
+def pi_raw(foo):
+    ret = {}
+    grouped = groupby(sorted(foo))
+    for key, group in grouped:
+        ret[key] = len(list(group))
+    return ret
+
 def init_dict(dim1, dim2):
-    ret = dict()
+    ret = OrderedDict()
     for d in dim1:
-        ret[d] = dict()
+        ret[d] = OrderedDict()
         for d2 in dim2:
             ret[d][d2] = 0
     return ret
@@ -179,6 +187,20 @@ def b_matrix(col, states, observations):
 
     return ret
 
+separator = """\t"""
+
+def print_a(a, col1, col2):
+    print (separator + separator.join([s1 for s1 in col2]))
+    for s1 in col1:
+        string = s1
+        for s2 in col2:
+            string += '{1}{0}'.format(a[s1][s2], separator)
+        print(string)
+
+def print_pi(p, col1):
+    print(separator.join([s1 for s1 in col1]))
+    print(separator.join([str(p[s1]) for s1 in col1]))
+
 with open(filename) as csvfile:
     dialect = csv.Sniffer().sniff(csvfile.read(1024))
     csvfile.seek(0)
@@ -202,6 +224,7 @@ with open(filename) as csvfile:
 
 
     states = [k for k, v in p.items()]
+    states_ordered = ['N', 'N-E', 'E', 'S-E', 'S', 'S-W', 'W', 'N-W']
 
     observations = [ beaufort_map[i] for i in sorted(set([d.beaufort for d in my_data]))]
     print(states)
@@ -211,14 +234,20 @@ with open(filename) as csvfile:
     #print (sum([v for k, v in p.items()]))
 
     check_a_sum(a, 730)
+    print_a(a, states_ordered, states_ordered)
+
     normalize_a(a)
     check_a_sum(a, 1)
 
     b = b_matrix([(d.beaufort_str, d.direction) for d in my_data], states, observations)
 
     check_a_sum(b, 731)
+
+    print_a(b, states_ordered, observations)
     normalize_a(b)
     check_a_sum(b, 1)
+
+    print_pi(pi_raw([d.direction for d in my_data]), states_ordered)
 
 
     print(p)
@@ -229,8 +258,9 @@ with open(filename) as csvfile:
     t2 = [21, 16.25, 13.25]
     t3 = [4.5, 18.75, 15.75]
     t4 = [13, 17.75, 19.75]
-    o = [beaufort_map[as_beaufort(i)] for i in t4]
-    #o = [observations[i] for i in [2, 1, 4, 3]]
+    t5 = [10, 16, 12.25, 9]
+    #o = [beaufort_map[as_beaufort(i)] for i in t5]
+    o = [observations[i] for i in [2, 3, 1, 3]]
     alg(states, observations, p, a, b, o)
 
     #analyze([d.beaufort for d in my_data])
