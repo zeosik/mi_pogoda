@@ -1,6 +1,8 @@
 import numpy as np
 import itertools
 
+from actual_alg import alg
+
 states = ['H', 'C']
 observations = ['S', 'M', 'L']
 
@@ -30,30 +32,16 @@ def as_states(col):
 
 #o = np.array([0, 1, 0, 2])
 #o = ['S', 'M', 'S', 'L']
-o = as_observation([0, 1, 0, 2])
 
 
 
-N = len(p) #liczba stanow
-M = len(next(iter(b.values()))) #liczba obserwacji
-T = len(o)
-
-if (N != len(states) or M != len(observations)):
-    raise Exception('bad')
 
 #       S       M       L
 # H     0.1     0.4     0.5
 # C     0.7     0.2     0.1
 #
 
-print(a)
-print(b)
-print(p)
-print(o)
 
-print(N)
-print(M)
-print(T)
 
 def calc(sequence: list):
     my = np.array(sequence)
@@ -64,15 +52,36 @@ def calc(sequence: list):
         sum *= ai * bi
     return sum
 
-seq = []
-seq_states = []
-std = []
-
 def normalize(iter):
     s = sum(iter)
     if s == 0.0:
         raise Exception('cannot normalalize sum is 0')
     return [v / s for v in iter]
+
+o = as_observation([0, 1, 0, 2])
+
+N = len(p) #liczba stanow
+M = len(next(iter(b.values()))) #liczba obserwacji
+T = len(o)
+
+print(a)
+print(b)
+print(p)
+print(o)
+
+print(N)
+print(M)
+print(T)
+
+if (N != len(states) or M != len(observations)):
+    raise Exception('bad')
+
+
+
+
+seq = []
+seq_states = []
+std = []
 
 for sequence in itertools.product(range(N), repeat=T):
     seq.append(sequence)
@@ -113,6 +122,8 @@ for i in range(len(seq)):
 
 
 print (state_prob)
+
+alg(states, observations, p, a, b, o)
 
 
 

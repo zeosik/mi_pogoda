@@ -2,6 +2,8 @@ import csv
 import re
 from itertools import groupby
 
+from actual_alg import alg
+
 pattern = re.compile('\s+')
 
 
@@ -46,12 +48,22 @@ direction_map = {
     'południowy' :'S',
     'północ.-wsch.': 'N-E',
     'północ.-zach.': 'N-W',
-    'północny' :'N',
-    'wschodni' :'E',
-    'zachodni' :'W'
+    'północny': 'N',
+    'wschodni': 'E',
+    'zachodni': 'W'
 }
 
 beaufort_list = [1, 5, 11, 19, 28, 38, 49, 61, 74, 88, 102, 117]
+
+beaufort_map = {
+    0: 'Calm',
+    1: 'Light air',
+    2: 'Light breeze',
+    3: 'Gentle breeze',
+    4: 'Moderate breeze',
+    5: 'Fresh breeze',
+    6: 'Strong breeze',
+}
 
 def as_beaufort(value):
     return len([x for x in beaufort_list if value > x])
@@ -78,6 +90,7 @@ class data:
 
         self.day, self.month, self.year = self._parse_date(date)
         self.speed, self.direction, self.beaufort = self._parse_wind(wind)
+        self.beaufort_str = beaufort_map[self.beaufort]
 
     def _parse_date(self, raw: str):
         split = raw.split(',')
@@ -120,6 +133,52 @@ def pi_matrix(foo):
         ret[key] = len(list(group)) / len(foo)
     return ret
 
+def init_dict(dim1, dim2):
+    ret = dict()
+    for d in dim1:
+        ret[d] = dict()
+        for d2 in dim2:
+            ret[d][d2] = 0
+    return ret
+
+def a_matrix(col: list, states: list):
+    ret = init_dict(states, states)
+
+    for i in range(1, len(col)):
+        s1 = col[i - 1]
+        s2 = col[i]
+        ret[s1][s2] += 1
+
+    return ret
+
+def a_sum(a):
+    s = 0
+    for k, v in a.items():
+        for k2, v2 in v.items():
+            s += v2
+    #print(s)
+    return s
+
+def check_a_sum(a, e):
+    s = a_sum(a)
+    #print (s)
+    assert (abs(s - e) <= 0.000001)
+
+def normalize_a(a):
+    s = a_sum(a)
+    for k, v in a.items():
+        for k2, v2 in v.items():
+            a[k][k2] /= s
+
+def b_matrix(col, states, observations):
+    ret = init_dict(states, observations)
+
+    for beaufort, direction in col:
+        ret[direction][beaufort] += 1
+        #pass
+
+    return ret
+
 with open(filename) as csvfile:
     dialect = csv.Sniffer().sniff(csvfile.read(1024))
     csvfile.seek(0)
@@ -137,9 +196,44 @@ with open(filename) as csvfile:
         lines.append('  ,({0})'.format(', '.join(items)))
         my_data.append(data(items[0], items[1], items[2], items[3], items[4], items[5]))
 
-    #analyze(['{0} {1}'.format(d.beaufort, d.direction) for d in my_data])
-    pi_matrix([d.direction for d in my_data])
 
+    #analyze(['{0} {1}'.format(d.beaufort, d.direction) for d in my_data])
+    p = pi_matrix([d.direction for d in my_data])
+
+
+    states = [k for k, v in p.items()]
+
+    observations = [ beaufort_map[i] for i in sorted(set([d.beaufort for d in my_data]))]
+    print(states)
+    print(observations)
+
+    a = a_matrix([d.direction for d in my_data], states)
+    #print (sum([v for k, v in p.items()]))
+
+    check_a_sum(a, 730)
+    normalize_a(a)
+    check_a_sum(a, 1)
+
+    b = b_matrix([(d.beaufort_str, d.direction) for d in my_data], states, observations)
+
+    check_a_sum(b, 731)
+    normalize_a(b)
+    check_a_sum(b, 1)
+
+
+    print(p)
+    print(a)
+    print(b)
+
+    t1 = [16.25, 29.75, 26.5, 33]
+    t2 = [21, 16.25, 13.25]
+    t3 = [4.5, 18.75, 15.75]
+    t4 = [13, 17.75, 19.75]
+    o = [beaufort_map[as_beaufort(i)] for i in t4]
+    #o = [observations[i] for i in [2, 1, 4, 3]]
+    alg(states, observations, p, a, b, o)
+
+    #analyze([d.beaufort for d in my_data])
 
 
     #for line in lines:
