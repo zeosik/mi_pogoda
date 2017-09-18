@@ -1,6 +1,8 @@
 import numpy as np
 import itertools
 
+states = ['H', 'C']
+observations = ['S', 'M', 'L']
 
 #a = np.matrix('0.7 0.3; 0.4 0.6')
 
@@ -20,13 +22,24 @@ p = {
     'C': 0.4
 }
 
+def as_observation(col):
+    return [observations[i] for i in col]
+
+def as_states(col):
+    return [states[i] for i in col]
+
 #o = np.array([0, 1, 0, 2])
-o = ['S', 'M', 'S', 'L']
+#o = ['S', 'M', 'S', 'L']
+o = as_observation([0, 1, 0, 2])
+
+
 
 N = len(p) #liczba stanow
 M = len(next(iter(b.values()))) #liczba obserwacji
 T = len(o)
 
+if (N != len(states) or M != len(observations)):
+    raise Exception('bad')
 
 #       S       M       L
 # H     0.1     0.4     0.5
@@ -46,12 +59,13 @@ def calc(sequence: list):
     my = np.array(sequence)
     sum = 1
     for i in range(my.size):
-        ai = p[my[i]] if i is 0 else a[my[i - 1], my[i]]
-        bi = b[my[i], o[i]]
+        ai = p[my[i]] if i is 0 else a[my[i - 1]][my[i]]
+        bi = b[my[i]][o[i]]
         sum *= ai * bi
     return sum
 
 seq = []
+seq_states = []
 std = []
 
 def normalize(iter):
@@ -62,6 +76,8 @@ def normalize(iter):
 
 for sequence in itertools.product(range(N), repeat=T):
     seq.append(sequence)
+    sequence = as_states(sequence)
+    seq_states.append(sequence)
     v = calc(sequence)
     std.append(v)
     #print("{0} -> {1:.6f}".format(sequence, calc(sequence)))
@@ -91,7 +107,7 @@ for t in range(T):
 for i in range(len(seq)):
     best_str = '<-- best ' if std[i] is best else ''
     best_state_str = '<-- best state ' if list(seq[i]) == best_state else ''
-    print("{0} -> {1:.6f} = {2:.6f} {3}{4}".format(seq[i], std[i], norm[i], best_str, best_state_str))
+    print("{0} -> {1:.6f} = {2:.6f} {3}{4}".format(seq_states[i], std[i], norm[i], best_str, best_state_str))
 
 #print (best_state)
 
