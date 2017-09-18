@@ -113,6 +113,13 @@ def analyze(foo):
     #    print(l)
     print('all: ' + str(len(foo)))
 
+def pi_matrix(foo):
+    ret = {}
+    grouped = groupby(sorted(foo))
+    for key, group in grouped:
+        ret[key] = len(list(group)) / len(foo)
+    return ret
+
 with open(filename) as csvfile:
     dialect = csv.Sniffer().sniff(csvfile.read(1024))
     csvfile.seek(0)
@@ -130,7 +137,10 @@ with open(filename) as csvfile:
         lines.append('  ,({0})'.format(', '.join(items)))
         my_data.append(data(items[0], items[1], items[2], items[3], items[4], items[5]))
 
-    analyze(['{0} {1}'.format(d.beaufort, d.direction) for d in my_data])
+    #analyze(['{0} {1}'.format(d.beaufort, d.direction) for d in my_data])
+    pi_matrix([d.direction for d in my_data])
+
+
 
     #for line in lines:
     #    print(line)
