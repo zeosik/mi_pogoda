@@ -201,6 +201,9 @@ def print_pi(p, col1):
     print(separator.join([s1 for s1 in col1]))
     print(separator.join([str(p[s1]) for s1 in col1]))
 
+def print_2_elem(col: list):
+    print(', '.join(col))
+
 with open(filename) as csvfile:
     dialect = csv.Sniffer().sniff(csvfile.read(1024))
     csvfile.seek(0)
@@ -223,8 +226,11 @@ with open(filename) as csvfile:
     p = pi_matrix([d.direction for d in my_data])
 
 
+
     states = [k for k, v in p.items()]
     states_ordered = ['N', 'N-E', 'E', 'S-E', 'S', 'S-W', 'W', 'N-W']
+
+    #p = {s: 1 / len(states) for s in states}
 
     observations = [ beaufort_map[i] for i in sorted(set([d.beaufort for d in my_data]))]
     print(states)
@@ -259,9 +265,41 @@ with open(filename) as csvfile:
     t3 = [4.5, 18.75, 15.75]
     t4 = [13, 17.75, 19.75]
     t5 = [10, 16, 12.25, 9]
-    #o = [beaufort_map[as_beaufort(i)] for i in t5]
-    o = [observations[i] for i in [2, 3, 1, 3]]
-    alg(states, observations, p, a, b, o)
+    t6 = [10, 16]
+    o = [beaufort_map[as_beaufort(i)] for i in t6]
+    #o = [observations[i] for i in [2, 3, 1, 3]]
+
+    stats = { True: 0, False: 0}
+    for i in range(1, len(my_data)):
+        d = my_data[i - 1]
+        d2 = my_data[i]
+        if d.year == 2017 and d.month == 6:
+        #if True:
+            o = [d.beaufort_str, d2.beaufort_str]
+
+            best, best_state = alg(states, observations, p, a, b, o, False)
+
+            correct = [d.direction, d2.direction]
+            if True:
+            #if (correct == best or correct == best_state):
+            #if (best != ['W', 'W'] or best_state != ['W', 'W']):
+                #print(o)
+                print('{0} {1} {2}'.format(d.day, d.month, d.year))
+                #print(['{0} {1}'.format(d.beaufort, d.beaufort_str), '{0} {1}'.format(d2.beaufort, d2.beaufort_str)])
+
+                print(['{0} {1}, {2} {3}'.format(d.beaufort, d.beaufort_str, d2.beaufort, d2.beaufort_str)])
+
+                print_2_elem(correct)
+                print_2_elem(best)
+                print_2_elem(best_state)
+                #print(correct)
+                #print(best)
+                #print(best_state)
+
+                stats[True] += 1
+            else:
+                stats[False] += 1
+    print (stats)
 
     #analyze([d.beaufort for d in my_data])
 

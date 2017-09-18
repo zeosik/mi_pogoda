@@ -1,4 +1,5 @@
 import itertools
+import operator
 
 import numpy as np
 
@@ -24,19 +25,19 @@ def normalize(iter):
         raise Exception('cannot normalalize sum is 0')
     return [v / s for v in iter]
 
-def alg(states, observations, p, a, b, o):
+def alg(states, observations, p, a, b, o, log=True):
     N = len(p)  # liczba stanow
     M = len(next(iter(b.values())))  # liczba obserwacji
     T = len(o)
+    if log:
+        print(a)
+        print(b)
+        print(p)
+        print(o)
 
-    print(a)
-    print(b)
-    print(p)
-    print(o)
-
-    print(N)
-    print(M)
-    print(T)
+        print(N)
+        print(M)
+        print(T)
 
     if (N != len(states) or M != len(observations)):
         raise Exception('bad')
@@ -65,7 +66,8 @@ def alg(states, observations, p, a, b, o):
     for t in range(T):
         state_prob[:, t] = normalize(state_prob[:, t])
 
-    best = max(std)
+    #best = max(std)
+    best_i, best = max(enumerate(std), key=operator.itemgetter(1))
 
     best_state = []
     for t in range(T):
@@ -78,9 +80,12 @@ def alg(states, observations, p, a, b, o):
     for i in range(len(seq)):
         best_str = '<-- best ' if std[i] is best else ''
         best_state_str = '<-- best state ' if list(seq[i]) == best_state else ''
-        print("{0} -> {1:.6f} = {2:.6f} {3}{4}".format(seq_states[i], std[i], norm[i], best_str, best_state_str))
+        if log:
+            print("{0} -> {1:.6f} = {2:.6f} {3}{4}".format(seq_states[i], std[i], norm[i], best_str, best_state_str))
 
     # print (best_state)
 
+    if log:
+        print(state_prob)
 
-    print(state_prob)
+    return as_states(seq[best_i], states), as_states(best_state, states)
